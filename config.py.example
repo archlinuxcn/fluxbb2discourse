@@ -1,0 +1,2 @@
+db_url = 'postgresql://discourse:password@127.0.0.1/discourse'
+forum_url = 'https://forum.archlinuxcn.org/'
