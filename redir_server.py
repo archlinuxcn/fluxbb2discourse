@@ -56,7 +56,7 @@ async def profile(request):
 
   if uid := request.query.get('id'):
     username = await get_username_by_uid(db, int(uid))
-    url = f'{config.forum_url}u/{username}'
+    url = f'{config.forum_url}u/{username}/summary'
   else:
     url = config.forum_url
 
