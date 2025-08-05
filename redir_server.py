@@ -87,10 +87,9 @@ async def yesredir(request):
 
 async def default(request):
   if request.path == '/':
-    target = config.forum_url
+    url = redirect_from(request.url, config.forum_url)
   else:
-    target = f'{config.forum_url}404'
-  url = redirect_from(request.url, target)
+    url = config.forum_url
   raise web.HTTPFound(url)
 
 def redirect_from(url, to):
