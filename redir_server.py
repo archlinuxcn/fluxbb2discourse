@@ -4,6 +4,7 @@ import logging
 
 from aiohttp import web
 import asyncpg
+from yarl import URL
 
 import config
 
@@ -22,6 +23,7 @@ async def viewtopic(request):
   else:
     url = config.forum_url
 
+  url = redirect_from(request.url, url)
   raise web.HTTPFound(url)
 
 async def get_topic_by_tid(db, tid):
@@ -54,6 +56,7 @@ async def profile(request):
   else:
     url = config.forum_url
 
+  url = redirect_from(request.url, url)
   raise web.HTTPFound(url)
 
 async def get_username_by_uid(db, uid):
@@ -79,7 +82,17 @@ async def yesredir(request):
   return r
 
 async def default(request):
-  raise web.HTTPFound(config.forum_url)
+  url = redirect_from(
+    request.url,
+    config.forum_url + request.path_qs.lstrip('/'),
+  )
+  raise web.HTTPFound(url)
+
+def redirect_from(url, to):
+  u = URL(to) % {
+    'redirected_from': str(url),
+  }
+  return str(u)
 
 async def init_db(app):
   app[KEY_DB] = await asyncpg.create_pool(config.db_url, setup=conn_init, min_size=0)
