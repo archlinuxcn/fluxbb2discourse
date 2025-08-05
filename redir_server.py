@@ -86,10 +86,11 @@ async def yesredir(request):
   return r
 
 async def default(request):
-  url = redirect_from(
-    request.url,
-    config.forum_url + request.path_qs.lstrip('/'),
-  )
+  if request.path == '/':
+    target = config.forum_url
+  else:
+    target = f'{config.forum_url}404'
+  url = redirect_from(request.url, target)
   raise web.HTTPFound(url)
 
 def redirect_from(url, to):
