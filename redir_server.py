@@ -90,7 +90,9 @@ async def default(request):
 
 def redirect_from(url, to):
   u = URL(to) % {
-    'redirected_from': str(url),
+    # aiohttp doesn't use X-Forwarded-Proto and we only use https, so change
+    # to https always
+    'redirected_from': str(url.with_scheme('https')),
   }
   return str(u)
 
