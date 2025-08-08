@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import logging
+import re
 
 from aiohttp import web
 import asyncpg
@@ -10,6 +11,14 @@ import config
 
 logger = logging.getLogger(__name__)
 KEY_DB = web.AppKey('db', asyncpg.Pool)
+
+def leading_int(s):
+  m = re.search(r'^\d+', s)
+  if m:
+    return int(m.group(0))
+  else:
+    # reraise
+    return int(s)
 
 def handle_value_error(func):
   async def wrapper(request):
@@ -24,14 +33,14 @@ async def viewtopic(request):
   db = request.app[KEY_DB]
 
   if tid := request.query.get('id'):
-    topic = await get_topic_by_tid(db, int(tid))
+    topic = await get_topic_by_tid(db, leading_int(tid))
     if (p := request.query.get('p')) and p != '1':
-      num = (int(p)-1) * 15
+      num = (leading_int(p)-1) * 15
       url = f'{config.forum_url}t/topic/{topic}/{num}'
     else:
       url = f'{config.forum_url}t/topic/{topic}'
   elif pid := request.query.get('pid'):
-    topic, num = await get_topic_by_pid(db, int(pid))
+    topic, num = await get_topic_by_pid(db, leading_int(pid))
     url = f'{config.forum_url}t/topic/{topic}/{num}'
   else:
     url = config.forum_url
@@ -64,7 +73,7 @@ async def profile(request):
   db = request.app[KEY_DB]
 
   if uid := request.query.get('id'):
-    username = await get_username_by_uid(db, int(uid))
+    username = await get_username_by_uid(db, leading_int(uid))
     url = f'{config.forum_url}u/{username}/summary'
   else:
     url = config.forum_url
