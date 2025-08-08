@@ -11,6 +11,15 @@ import config
 logger = logging.getLogger(__name__)
 KEY_DB = web.AppKey('db', asyncpg.Pool)
 
+def handle_value_error(func):
+  async def wrapper(request):
+    try:
+      return await func(request)
+    except ValueError as e:
+      logger.warning('%r for url %s', e, request.url)
+      raise web.HTTPBadRequest()
+  return wrapper
+
 async def viewtopic(request):
   db = request.app[KEY_DB]
 
@@ -111,8 +120,8 @@ async def conn_init(conn):
 def setup_app(app):
   app.cleanup_ctx.append(init_db)
 
-  app.router.add_get('/viewtopic.php', viewtopic)
-  app.router.add_get('/profile.php', profile)
+  app.router.add_get('/viewtopic.php', handle_value_error(viewtopic))
+  app.router.add_get('/profile.php', handle_value_error(profile))
   app.router.add_get('/noredir', noredir)
   app.router.add_get('/yesredir', yesredir)
   app.router.add_get('/{p:.*}', default)
