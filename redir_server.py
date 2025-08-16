@@ -35,7 +35,7 @@ async def viewtopic(request):
   if tid := request.query.get('id'):
     topic = await get_topic_by_tid(db, leading_int(tid))
     if (p := request.query.get('p')) and p != '1':
-      num = (leading_int(p)-1) * 15
+      num = (leading_int(p)-1) * 15 + 1
       url = f'{config.forum_url}t/topic/{topic}/{num}'
     else:
       url = f'{config.forum_url}t/topic/{topic}'
