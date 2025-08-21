@@ -48,6 +48,22 @@ async def viewtopic(request):
   url = redirect_from(request.url, url)
   raise web.HTTPFound(url)
 
+async def rss(request):
+  db = request.app[KEY_DB]
+
+  action = request.query.get('action')
+  ty = request.query.get('type')
+  if not (action == 'feed' and ty == 'rss'):
+    raise web.HTTPNotFound()
+
+  if tid := request.query.get('tid'):
+    topic = await get_topic_by_tid(db, leading_int(tid))
+    url = f'{config.forum_url}t/topic/{topic}.rss'
+  else:
+    url = f'{config.forum_url}posts.rss'
+
+  raise web.HTTPFound(url)
+
 async def get_topic_by_tid(db, tid):
   async with db.acquire() as conn, conn.transaction():
     sql = '''SELECT discourse_topic_id FROM posts
@@ -130,6 +146,7 @@ def setup_app(app):
   app.cleanup_ctx.append(init_db)
 
   app.router.add_get('/viewtopic.php', handle_value_error(viewtopic))
+  app.router.add_get('/extern.php', handle_value_error(rss))
   app.router.add_get('/profile.php', handle_value_error(profile))
   app.router.add_get('/noredir', noredir)
   app.router.add_get('/yesredir', yesredir)
